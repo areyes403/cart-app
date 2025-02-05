@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { ProductService } from '../services/product.service';
-import { Product } from '../models/product';
 import { CatalogComponent } from './catalog/catalog.component';
 import { CartItem } from '../models/cartitem';
 import { NavbarComponent } from './navbar/navbar.component';
@@ -13,8 +12,6 @@ import { SharingDataService } from '../services/sharing-data.service';
   templateUrl: './cart-app.component.html',
 })
 export class CartAppComponent implements OnInit {
-
-  products:Product[]=[];
 
   items: CartItem[]=[];
 
@@ -31,7 +28,6 @@ export class CartAppComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.products = this.service.findAll();
     this.items= JSON.parse(sessionStorage.getItem('cart') || '[]');
     this.calculateTotal();
     this.onDeleteCart();
