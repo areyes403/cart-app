@@ -4,7 +4,8 @@ import { Product } from '../models/product';
 import { CatalogComponent } from './catalog/catalog.component';
 import { CartItem } from '../models/cartitem';
 import { NavbarComponent } from './navbar/navbar.component';
-import { RouterOutlet } from '@angular/router';
+import { Router, RouterOutlet } from '@angular/router';
+import { SharingDataService } from '../services/sharing-data.service';
 
 @Component({
   selector: 'cart-app',
@@ -21,16 +22,25 @@ export class CartAppComponent implements OnInit {
 
   showCart:boolean=false;
 
-  constructor(private service:ProductService){}
+  constructor(
+    private router:Router,
+    private service:ProductService, 
+    private sharingDataService:SharingDataService
+  ){
+
+  }
 
   ngOnInit(): void {
     this.products = this.service.findAll();
     this.items= JSON.parse(sessionStorage.getItem('cart') || '[]');
     this.calculateTotal();
+    this.onDeleteCart();
+    this.onAddCart();
   }
 
-  onAddCart(product:Product): void {
-    const hasItem=this.items.find(item => item.product.id === product.id);
+  onAddCart(): void {
+    this.sharingDataService.productEventEmmiter.subscribe( product=> {
+      const hasItem=this.items.find(item => item.product.id === product.id);
     if(hasItem){
       this.items=this.items.map(item=>{
         if(item.product.id === product.id){
@@ -46,12 +56,28 @@ export class CartAppComponent implements OnInit {
     }
     this.calculateTotal();
     this.saveSession();
+    this.router.navigate([['/cart',{
+      state: { items: this.items, total: this.total }
+    }]]);
+    })
+
   }
 
-  onDeleteCart(id:number){
-    this.items = this.items.filter(item=>item.product.id !== id);
-    this.calculateTotal();
-    this.saveSession();
+  onDeleteCart(){
+    this.sharingDataService.idProductEventEmmiter.subscribe(id => {
+      this.items = this.items.filter(item=>item.product.id !== id);
+      if(this.items.length == 0){
+        sessionStorage.removeItem('cart');
+        sessionStorage.clear();
+      }
+      this.calculateTotal();
+      this.saveSession();
+      this.router.navigateByUrl('/',{skipLocationChange:true}).then(()=>{
+        this.router.navigate(['/cart'],{
+          state:{items: this.items, total: this.total}
+        })
+      })
+    });
   }
 
   calculateTotal():void{

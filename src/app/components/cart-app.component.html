@@ -1,8 +1,10 @@
-<navbar [items]="items"/>
+<navbar 
+[items]="items" 
+[total]="total"
+[products]="products"
+/>
 
 <div class="container my-4">
-    <h2>Carro de compras!</h2>
-    <catalog [products]="products" (productEventEmmiter)="onAddCart($event)"/>
     <router-outlet/>
 </div>
 
